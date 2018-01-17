@@ -4,7 +4,7 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit30061d9cbb42617786fab772de63949d
+class ComposerStaticInitabbd250d054c012a2bb3765e85e5921f
 {
     public static $files = array (
         '1d1b89d124cc9cb8219922c9d5569199' => __DIR__ . '/..' . '/hamcrest/hamcrest-php/hamcrest/Hamcrest.php',
@@ -309,7 +309,7 @@ class ComposerStaticInit30061d9cbb42617786fab772de63949d
     public static $classMap = array (
         'App\\Console\\Kernel' => __DIR__ . '/../..' . '/app/Console/Kernel.php',
         'App\\Exceptions\\Handler' => __DIR__ . '/../..' . '/app/Exceptions/Handler.php',
-        'App\\Http\\Controllers\\AccountingController' => __DIR__ . '/../..' . '/app/Http/Controllers/AccountingController.php',
+        'App\\Http\\Controllers\\AssetController' => __DIR__ . '/../..' . '/app/Http/Controllers/AssetController.php',
         'App\\Http\\Controllers\\AttributeController' => __DIR__ . '/../..' . '/app/Http/Controllers/AttributeController.php',
         'App\\Http\\Controllers\\Auth\\ForgotPasswordController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/ForgotPasswordController.php',
         'App\\Http\\Controllers\\Auth\\LoginController' => __DIR__ . '/../..' . '/app/Http/Controllers/Auth/LoginController.php',
@@ -319,20 +319,25 @@ class ComposerStaticInit30061d9cbb42617786fab772de63949d
         'App\\Http\\Controllers\\CategoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/CategoryController.php',
         'App\\Http\\Controllers\\CompanyController' => __DIR__ . '/../..' . '/app/Http/Controllers/CompanyController.php',
         'App\\Http\\Controllers\\Controller' => __DIR__ . '/../..' . '/app/Http/Controllers/Controller.php',
+        'App\\Http\\Controllers\\CustomerController' => __DIR__ . '/../..' . '/app/Http/Controllers/CustomerController.php',
+        'App\\Http\\Controllers\\EmployeeController' => __DIR__ . '/../..' . '/app/Http/Controllers/EmployeeController.php',
+        'App\\Http\\Controllers\\EventController' => __DIR__ . '/../..' . '/app/Http/Controllers/EventController.php',
         'App\\Http\\Controllers\\HomeController' => __DIR__ . '/../..' . '/app/Http/Controllers/HomeController.php',
-        'App\\Http\\Controllers\\InventoryController' => __DIR__ . '/../..' . '/app/Http/Controllers/InventoryController.php',
-        'App\\Http\\Controllers\\POSController' => __DIR__ . '/../..' . '/app/Http/Controllers/POSController.php',
+        'App\\Http\\Controllers\\ManagementController' => __DIR__ . '/../..' . '/app/Http/Controllers/ManagementController.php',
+        'App\\Http\\Controllers\\NewsController' => __DIR__ . '/../..' . '/app/Http/Controllers/NewsController.php',
+        'App\\Http\\Controllers\\PaymentController' => __DIR__ . '/../..' . '/app/Http/Controllers/PaymentController.php',
         'App\\Http\\Controllers\\ProductController' => __DIR__ . '/../..' . '/app/Http/Controllers/ProductController.php',
+        'App\\Http\\Controllers\\PromotionController' => __DIR__ . '/../..' . '/app/Http/Controllers/PromotionController.php',
         'App\\Http\\Controllers\\PurchaseController' => __DIR__ . '/../..' . '/app/Http/Controllers/PurchaseController.php',
         'App\\Http\\Controllers\\Right' => __DIR__ . '/../..' . '/app/Http/Controllers/Right.php',
         'App\\Http\\Controllers\\RoleController' => __DIR__ . '/../..' . '/app/Http/Controllers/RoleController.php',
-        'App\\Http\\Controllers\\SaleController' => __DIR__ . '/../..' . '/app/Http/Controllers/SaleController.php',
+        'App\\Http\\Controllers\\SalespersonController' => __DIR__ . '/../..' . '/app/Http/Controllers/SalespersonController.php',
+        'App\\Http\\Controllers\\ScheduleController' => __DIR__ . '/../..' . '/app/Http/Controllers/ScheduleController.php',
+        'App\\Http\\Controllers\\ServiceController' => __DIR__ . '/../..' . '/app/Http/Controllers/ServiceController.php',
         'App\\Http\\Controllers\\SettingController' => __DIR__ . '/../..' . '/app/Http/Controllers/SettingController.php',
-        'App\\Http\\Controllers\\SupplierController' => __DIR__ . '/../..' . '/app/Http/Controllers/SupplierController.php',
-        'App\\Http\\Controllers\\TaxController' => __DIR__ . '/../..' . '/app/Http/Controllers/TaxController.php',
-        'App\\Http\\Controllers\\UnitController' => __DIR__ . '/../..' . '/app/Http/Controllers/UnitController.php',
+        'App\\Http\\Controllers\\TaskController' => __DIR__ . '/../..' . '/app/Http/Controllers/TaskController.php',
+        'App\\Http\\Controllers\\TechnicianController' => __DIR__ . '/../..' . '/app/Http/Controllers/TechnicianController.php',
         'App\\Http\\Controllers\\UserController' => __DIR__ . '/../..' . '/app/Http/Controllers/UserController.php',
-        'App\\Http\\Controllers\\WarehouseController' => __DIR__ . '/../..' . '/app/Http/Controllers/WarehouseController.php',
         'App\\Http\\Kernel' => __DIR__ . '/../..' . '/app/Http/Kernel.php',
         'App\\Http\\Middleware\\EncryptCookies' => __DIR__ . '/../..' . '/app/Http/Middleware/EncryptCookies.php',
         'App\\Http\\Middleware\\RedirectIfAuthenticated' => __DIR__ . '/../..' . '/app/Http/Middleware/RedirectIfAuthenticated.php',
@@ -1289,7 +1294,6 @@ class ComposerStaticInit30061d9cbb42617786fab772de63949d
         'Illuminate\\Events\\CallQueuedListener' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Events/CallQueuedListener.php',
         'Illuminate\\Events\\Dispatcher' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Events/Dispatcher.php',
         'Illuminate\\Events\\EventServiceProvider' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Events/EventServiceProvider.php',
-        'Illuminate\\Filesystem\\Cache' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Filesystem/Cache.php',
         'Illuminate\\Filesystem\\Filesystem' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Filesystem/Filesystem.php',
         'Illuminate\\Filesystem\\FilesystemAdapter' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Filesystem/FilesystemAdapter.php',
         'Illuminate\\Filesystem\\FilesystemManager' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Filesystem/FilesystemManager.php',
@@ -1401,7 +1405,6 @@ class ComposerStaticInit30061d9cbb42617786fab772de63949d
         'Illuminate\\Foundation\\Testing\\RefreshDatabaseState' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Foundation/Testing/RefreshDatabaseState.php',
         'Illuminate\\Foundation\\Testing\\TestCase' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Foundation/Testing/TestCase.php',
         'Illuminate\\Foundation\\Testing\\TestResponse' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Foundation/Testing/TestResponse.php',
-        'Illuminate\\Foundation\\Testing\\WithFaker' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Foundation/Testing/WithFaker.php',
         'Illuminate\\Foundation\\Testing\\WithoutEvents' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Foundation/Testing/WithoutEvents.php',
         'Illuminate\\Foundation\\Testing\\WithoutMiddleware' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Foundation/Testing/WithoutMiddleware.php',
         'Illuminate\\Foundation\\Validation\\ValidatesRequests' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Foundation/Validation/ValidatesRequests.php',
@@ -1612,7 +1615,6 @@ class ComposerStaticInit30061d9cbb42617786fab772de63949d
         'Illuminate\\Session\\FileSessionHandler' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Session/FileSessionHandler.php',
         'Illuminate\\Session\\Middleware\\AuthenticateSession' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Session/Middleware/AuthenticateSession.php',
         'Illuminate\\Session\\Middleware\\StartSession' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Session/Middleware/StartSession.php',
-        'Illuminate\\Session\\NullSessionHandler' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Session/NullSessionHandler.php',
         'Illuminate\\Session\\SessionManager' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Session/SessionManager.php',
         'Illuminate\\Session\\SessionServiceProvider' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Session/SessionServiceProvider.php',
         'Illuminate\\Session\\Store' => __DIR__ . '/..' . '/laravel/framework/src/Illuminate/Session/Store.php',
@@ -3630,10 +3632,10 @@ class ComposerStaticInit30061d9cbb42617786fab772de63949d
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit30061d9cbb42617786fab772de63949d::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit30061d9cbb42617786fab772de63949d::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit30061d9cbb42617786fab772de63949d::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit30061d9cbb42617786fab772de63949d::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInitabbd250d054c012a2bb3765e85e5921f::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInitabbd250d054c012a2bb3765e85e5921f::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInitabbd250d054c012a2bb3765e85e5921f::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInitabbd250d054c012a2bb3765e85e5921f::$classMap;
 
         }, null, ClassLoader::class);
     }

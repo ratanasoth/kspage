@@ -280,14 +280,13 @@ class CodeCoverage
      * @param bool  $append
      * @param mixed $linesToBeCovered
      * @param array $linesToBeUsed
-     * @param bool  $ignoreForceCoversAnnotation
      *
      * @return array
      *
      * @throws \SebastianBergmann\CodeCoverage\RuntimeException
      * @throws InvalidArgumentException
      */
-    public function stop($append = true, $linesToBeCovered = [], array $linesToBeUsed = [], $ignoreForceCoversAnnotation = false)
+    public function stop($append = true, $linesToBeCovered = [], array $linesToBeUsed = [])
     {
         if (!\is_bool($append)) {
             throw InvalidArgumentException::create(
@@ -304,7 +303,7 @@ class CodeCoverage
         }
 
         $data = $this->driver->stop();
-        $this->append($data, null, $append, $linesToBeCovered, $linesToBeUsed, $ignoreForceCoversAnnotation);
+        $this->append($data, null, $append, $linesToBeCovered, $linesToBeUsed);
 
         $this->currentId = null;
 
@@ -319,7 +318,6 @@ class CodeCoverage
      * @param bool  $append
      * @param mixed $linesToBeCovered
      * @param array $linesToBeUsed
-     * @param bool  $ignoreForceCoversAnnotation
      *
      * @throws \SebastianBergmann\CodeCoverage\UnintentionallyCoveredCodeException
      * @throws \SebastianBergmann\CodeCoverage\MissingCoversAnnotationException
@@ -328,7 +326,7 @@ class CodeCoverage
      * @throws \SebastianBergmann\CodeCoverage\InvalidArgumentException
      * @throws RuntimeException
      */
-    public function append(array $data, $id = null, $append = true, $linesToBeCovered = [], array $linesToBeUsed = [], $ignoreForceCoversAnnotation = false)
+    public function append(array $data, $id = null, $append = true, $linesToBeCovered = [], array $linesToBeUsed = [])
     {
         if ($id === null) {
             $id = $this->currentId;
@@ -350,8 +348,7 @@ class CodeCoverage
             $this->applyCoversAnnotationFilter(
                 $data,
                 $linesToBeCovered,
-                $linesToBeUsed,
-                $ignoreForceCoversAnnotation
+                $linesToBeUsed
             );
         }
 
@@ -622,17 +619,16 @@ class CodeCoverage
      * @param array $data
      * @param mixed $linesToBeCovered
      * @param array $linesToBeUsed
-     * @param bool  $ignoreForceCoversAnnotation
      *
      * @throws \SebastianBergmann\CodeCoverage\CoveredCodeNotExecutedException
      * @throws \ReflectionException
      * @throws MissingCoversAnnotationException
      * @throws UnintentionallyCoveredCodeException
      */
-    private function applyCoversAnnotationFilter(array &$data, $linesToBeCovered, array $linesToBeUsed, $ignoreForceCoversAnnotation)
+    private function applyCoversAnnotationFilter(array &$data, $linesToBeCovered, array $linesToBeUsed)
     {
         if ($linesToBeCovered === false ||
-            ($this->forceCoversAnnotation && empty($linesToBeCovered) && !$ignoreForceCoversAnnotation)) {
+            ($this->forceCoversAnnotation && empty($linesToBeCovered))) {
             if ($this->checkForMissingCoversAnnotation) {
                 throw new MissingCoversAnnotationException;
             }
@@ -760,177 +756,171 @@ class CodeCoverage
             );
         }
 
-        if (isset($this->ignoredLines[$filename])) {
-            return $this->ignoredLines[$filename];
-        }
+        if (!isset($this->ignoredLines[$filename])) {
+            $this->ignoredLines[$filename] = [];
 
-        $this->ignoredLines[$filename] = [];
-
-        $lines = \file($filename);
-
-        foreach ($lines as $index => $line) {
-            if (!\trim($line)) {
-                $this->ignoredLines[$filename][] = $index + 1;
+            if ($this->disableIgnoredLines) {
+                return $this->ignoredLines[$filename];
             }
-        }
 
-        if ($this->cacheTokens) {
-            $tokens = \PHP_Token_Stream_CachingFactory::get($filename);
-        } else {
-            $tokens = new \PHP_Token_Stream($filename);
-        }
+            $ignore   = false;
+            $stop     = false;
+            $lines    = \file($filename);
+            $numLines = \count($lines);
 
-        foreach ($tokens->getInterfaces() as $interface) {
-            $interfaceStartLine = $interface['startLine'];
-            $interfaceEndLine   = $interface['endLine'];
-
-            foreach (\range($interfaceStartLine, $interfaceEndLine) as $line) {
-                $this->ignoredLines[$filename][] = $line;
+            foreach ($lines as $index => $line) {
+                if (!\trim($line)) {
+                    $this->ignoredLines[$filename][] = $index + 1;
+                }
             }
-        }
 
-        foreach (\array_merge($tokens->getClasses(), $tokens->getTraits()) as $classOrTrait) {
-            $classOrTraitStartLine = $classOrTrait['startLine'];
-            $classOrTraitEndLine   = $classOrTrait['endLine'];
+            if ($this->cacheTokens) {
+                $tokens = \PHP_Token_Stream_CachingFactory::get($filename);
+            } else {
+                $tokens = new \PHP_Token_Stream($filename);
+            }
 
-            if (empty($classOrTrait['methods'])) {
-                foreach (\range($classOrTraitStartLine, $classOrTraitEndLine) as $line) {
+            foreach ($tokens->getInterfaces() as $interface) {
+                $interfaceStartLine = $interface['startLine'];
+                $interfaceEndLine   = $interface['endLine'];
+
+                foreach (\range($interfaceStartLine, $interfaceEndLine) as $line) {
+                    $this->ignoredLines[$filename][] = $line;
+                }
+            }
+
+            foreach (\array_merge($tokens->getClasses(), $tokens->getTraits()) as $classOrTrait) {
+                $classOrTraitStartLine = $classOrTrait['startLine'];
+                $classOrTraitEndLine   = $classOrTrait['endLine'];
+
+                if (empty($classOrTrait['methods'])) {
+                    foreach (\range($classOrTraitStartLine, $classOrTraitEndLine) as $line) {
+                        $this->ignoredLines[$filename][] = $line;
+                    }
+
+                    continue;
+                }
+
+                $firstMethod          = \array_shift($classOrTrait['methods']);
+                $firstMethodStartLine = $firstMethod['startLine'];
+                $firstMethodEndLine   = $firstMethod['endLine'];
+                $lastMethodEndLine    = $firstMethodEndLine;
+
+                do {
+                    $lastMethod = \array_pop($classOrTrait['methods']);
+                } while ($lastMethod !== null && 0 === \strpos($lastMethod['signature'], 'anonymousFunction'));
+
+                if ($lastMethod !== null) {
+                    $lastMethodEndLine = $lastMethod['endLine'];
+                }
+
+                foreach (\range($classOrTraitStartLine, $firstMethodStartLine) as $line) {
                     $this->ignoredLines[$filename][] = $line;
                 }
 
-                continue;
-            }
-
-            $firstMethod          = \array_shift($classOrTrait['methods']);
-            $firstMethodStartLine = $firstMethod['startLine'];
-            $firstMethodEndLine   = $firstMethod['endLine'];
-            $lastMethodEndLine    = $firstMethodEndLine;
-
-            do {
-                $lastMethod = \array_pop($classOrTrait['methods']);
-            } while ($lastMethod !== null && 0 === \strpos($lastMethod['signature'], 'anonymousFunction'));
-
-            if ($lastMethod !== null) {
-                $lastMethodEndLine = $lastMethod['endLine'];
-            }
-
-            foreach (\range($classOrTraitStartLine, $firstMethodStartLine) as $line) {
-                $this->ignoredLines[$filename][] = $line;
-            }
-
-            foreach (\range($lastMethodEndLine + 1, $classOrTraitEndLine) as $line) {
-                $this->ignoredLines[$filename][] = $line;
-            }
-        }
-
-        if ($this->disableIgnoredLines) {
-            $this->ignoredLines[$filename] = array_unique($this->ignoredLines[$filename]);
-            \sort($this->ignoredLines[$filename]);
-
-            return $this->ignoredLines[$filename];
-        }
-
-        $ignore = false;
-        $stop   = false;
-
-        foreach ($tokens->tokens() as $token) {
-            switch (\get_class($token)) {
-                case \PHP_Token_COMMENT::class:
-                case \PHP_Token_DOC_COMMENT::class:
-                    $_token = \trim($token);
-                    $_line  = \trim($lines[$token->getLine() - 1]);
-
-                    if ($_token === '// @codeCoverageIgnore' ||
-                        $_token === '//@codeCoverageIgnore') {
-                        $ignore = true;
-                        $stop   = true;
-                    } elseif ($_token === '// @codeCoverageIgnoreStart' ||
-                        $_token === '//@codeCoverageIgnoreStart') {
-                        $ignore = true;
-                    } elseif ($_token === '// @codeCoverageIgnoreEnd' ||
-                        $_token === '//@codeCoverageIgnoreEnd') {
-                        $stop = true;
-                    }
-
-                    if (!$ignore) {
-                        $start = $token->getLine();
-                        $end   = $start + \substr_count($token, "\n");
-
-                        // Do not ignore the first line when there is a token
-                        // before the comment
-                        if (0 !== \strpos($_token, $_line)) {
-                            $start++;
-                        }
-
-                        for ($i = $start; $i < $end; $i++) {
-                            $this->ignoredLines[$filename][] = $i;
-                        }
-
-                        // A DOC_COMMENT token or a COMMENT token starting with "/*"
-                        // does not contain the final \n character in its text
-                        if (isset($lines[$i - 1]) && 0 === \strpos($_token, '/*') && '*/' === \substr(\trim($lines[$i - 1]), -2)) {
-                            $this->ignoredLines[$filename][] = $i;
-                        }
-                    }
-
-                    break;
-
-                case \PHP_Token_INTERFACE::class:
-                case \PHP_Token_TRAIT::class:
-                case \PHP_Token_CLASS::class:
-                case \PHP_Token_FUNCTION::class:
-                    /* @var \PHP_Token_Interface $token */
-
-                    $docblock = $token->getDocblock();
-
-                    $this->ignoredLines[$filename][] = $token->getLine();
-
-                    if (\strpos($docblock, '@codeCoverageIgnore') || ($this->ignoreDeprecatedCode && \strpos($docblock, '@deprecated'))) {
-                        $endLine = $token->getEndLine();
-
-                        for ($i = $token->getLine(); $i <= $endLine; $i++) {
-                            $this->ignoredLines[$filename][] = $i;
-                        }
-                    }
-
-                    break;
-
-                case \PHP_Token_ENUM::class:
-                    $this->ignoredLines[$filename][] = $token->getLine();
-
-                    break;
-
-                case \PHP_Token_NAMESPACE::class:
-                    $this->ignoredLines[$filename][] = $token->getEndLine();
-
-                // Intentional fallthrough
-                case \PHP_Token_DECLARE::class:
-                case \PHP_Token_OPEN_TAG::class:
-                case \PHP_Token_CLOSE_TAG::class:
-                case \PHP_Token_USE::class:
-                    $this->ignoredLines[$filename][] = $token->getLine();
-
-                    break;
-            }
-
-            if ($ignore) {
-                $this->ignoredLines[$filename][] = $token->getLine();
-
-                if ($stop) {
-                    $ignore = false;
-                    $stop   = false;
+                foreach (\range($lastMethodEndLine + 1, $classOrTraitEndLine) as $line) {
+                    $this->ignoredLines[$filename][] = $line;
                 }
             }
+
+            foreach ($tokens->tokens() as $token) {
+                switch (\get_class($token)) {
+                    case \PHP_Token_COMMENT::class:
+                    case \PHP_Token_DOC_COMMENT::class:
+                        $_token = \trim($token);
+                        $_line  = \trim($lines[$token->getLine() - 1]);
+
+                        if ($_token === '// @codeCoverageIgnore' ||
+                            $_token === '//@codeCoverageIgnore') {
+                            $ignore = true;
+                            $stop   = true;
+                        } elseif ($_token === '// @codeCoverageIgnoreStart' ||
+                            $_token === '//@codeCoverageIgnoreStart') {
+                            $ignore = true;
+                        } elseif ($_token === '// @codeCoverageIgnoreEnd' ||
+                            $_token === '//@codeCoverageIgnoreEnd') {
+                            $stop = true;
+                        }
+
+                        if (!$ignore) {
+                            $start = $token->getLine();
+                            $end   = $start + \substr_count($token, "\n");
+
+                            // Do not ignore the first line when there is a token
+                            // before the comment
+                            if (0 !== \strpos($_token, $_line)) {
+                                $start++;
+                            }
+
+                            for ($i = $start; $i < $end; $i++) {
+                                $this->ignoredLines[$filename][] = $i;
+                            }
+
+                            // A DOC_COMMENT token or a COMMENT token starting with "/*"
+                            // does not contain the final \n character in its text
+                            if (isset($lines[$i - 1]) && 0 === \strpos($_token, '/*') && '*/' === \substr(\trim($lines[$i - 1]), -2)) {
+                                $this->ignoredLines[$filename][] = $i;
+                            }
+                        }
+
+                        break;
+
+                    case \PHP_Token_INTERFACE::class:
+                    case \PHP_Token_TRAIT::class:
+                    case \PHP_Token_CLASS::class:
+                    case \PHP_Token_FUNCTION::class:
+                        /* @var \PHP_Token_Interface $token */
+
+                        $docblock = $token->getDocblock();
+
+                        $this->ignoredLines[$filename][] = $token->getLine();
+
+                        if (\strpos($docblock, '@codeCoverageIgnore') || ($this->ignoreDeprecatedCode && \strpos($docblock, '@deprecated'))) {
+                            $endLine = $token->getEndLine();
+
+                            for ($i = $token->getLine(); $i <= $endLine; $i++) {
+                                $this->ignoredLines[$filename][] = $i;
+                            }
+                        }
+
+                        break;
+
+                    case \PHP_Token_ENUM::class:
+                        $this->ignoredLines[$filename][] = $token->getLine();
+
+                        break;
+
+                    case \PHP_Token_NAMESPACE::class:
+                        $this->ignoredLines[$filename][] = $token->getEndLine();
+
+                    // Intentional fallthrough
+                    case \PHP_Token_DECLARE::class:
+                    case \PHP_Token_OPEN_TAG::class:
+                    case \PHP_Token_CLOSE_TAG::class:
+                    case \PHP_Token_USE::class:
+                        $this->ignoredLines[$filename][] = $token->getLine();
+
+                        break;
+                }
+
+                if ($ignore) {
+                    $this->ignoredLines[$filename][] = $token->getLine();
+
+                    if ($stop) {
+                        $ignore = false;
+                        $stop   = false;
+                    }
+                }
+            }
+
+            $this->ignoredLines[$filename][] = $numLines + 1;
+
+            $this->ignoredLines[$filename] = \array_unique(
+                $this->ignoredLines[$filename]
+            );
+
+            \sort($this->ignoredLines[$filename]);
         }
-
-        $this->ignoredLines[$filename][] = \count($lines) + 1;
-
-        $this->ignoredLines[$filename] = \array_unique(
-            $this->ignoredLines[$filename]
-        );
-
-        $this->ignoredLines[$filename] = array_unique($this->ignoredLines[$filename]);
-        \sort($this->ignoredLines[$filename]);
 
         return $this->ignoredLines[$filename];
     }

@@ -1,8 +1,11 @@
 <?php
 
-Route::get('/', function () {
+//header('Access-Control-Allow-Headers: X-Requested-With, origin, content-type');
+
+Route::get('/admin', function () {
     return redirect('/login');
 });
+
 // user route
 Route::get('/user', "UserController@index");
 Route::get('/user/profile', "UserController@load_profile");
@@ -27,11 +30,12 @@ Route::get("/role/edit/{id}", "RoleController@edit");
 Route::get("/role/delete/{id}", "RoleController@delete");
 Route::post("/role/save", "RoleController@save");
 Route::post("/role/update", "RoleController@update");
-
+Route::auth();
 Route::get('/home', 'HomeController@index')->name('home');
+// settings
+Route::get('/setting', "SettingController@index");
 
-
-
-
-
-
+// mgmt
+Route::get("/management" ,"ManagementController@index");
+// category
+Route::get('/admin/category', "CategoryController@index");

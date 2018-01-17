@@ -9,14 +9,9 @@ class UserController extends Controller
 {
     public function __construct()
     {
-        $this->middleware(function ($request, $next) {
-            if (Auth::user()==null)
-            {
-                return redirect("/login");
-            }
-            return $next($request);
-        });
+        $this->middleware('auth');
     }
+
     // function to load profile view
     public  function index()
     {
@@ -24,41 +19,26 @@ class UserController extends Controller
             ->join("roles", "users.role_id","=", "roles.id")
             ->select("users.*", "roles.name as role_name")
             ->paginate(12);
-        if(Auth::user()->role_id>1)
-        {
-            $data['users'] = DB::table('users')
-            ->join("roles", "users.role_id","=", "roles.id")
-            ->where("users.company_id", Auth::user()->company_id)
-            ->select("users.*", "roles.name as role_name")
-            ->paginate(12);
-        }
         return view("users.index", $data);
     }
     // function to load user profile
     public function load_profile()
     {
-        $data['roles'] = DB::table('roles')->get();
         $data['user'] = DB::table('users')->where('id', Auth::user()->id)->first();
+        $data['role_name'] = DB::table('roles')->where('active',1)->where('id', $data['user']->role_id)->first();
         return view('users.profile', $data);
     }
     // load create user form
     public function create()
     {
-        if(!Right::check('User', 'i')){
-            return view('permissions.no');
-        }
         $data['roles'] = DB::table('roles')->get();
-        if(Auth::user()->role_id>1)
-        {
-            $data['roles'] = DB::table('roles')->where("company_id", Auth::user()->company_id)->get();
-        }
         return view('users.create', $data);
     }
     public function edit($id)
     {
-        if(!Right::check('User', 'u')){
-            return view('permissions.no');
-        }
+//        if(!Right::check('User', 'u')){
+//            return view('permissions.no');
+//        }
         $data['user'] = DB::table('users')->where('id', $id)->first();
         $data['roles'] = DB::table('roles')->get();
         if(Auth::user()->role_id>1)
@@ -70,9 +50,9 @@ class UserController extends Controller
     // delete a user by his/her id
     public function delete($id)
     {
-        if(!Right::check('User', 'd')){
-            return view('permissions.no');
-        }
+//        if(!Right::check('User', 'd')){
+//            return view('permissions.no');
+//        }
         DB::table('users')->where('id', $id)->delete();
         $page = @$_GET['page'];
         if ($page>0)
@@ -144,35 +124,28 @@ class UserController extends Controller
     // save user
     public function save(Request $r)
     {
-        $file_name = "default.png";
-        $sms = "";
-        $sms1 = "";
-        $lang = Auth::user()->language;
-        if($lang=='kh')
-        {
-            $sms = "អ្នកប្រើប្រាស់ថ្មី ត្រូវបានបង្កើតដោយជោគជ័យ។";
-            $sms1 = "មិនអាចបង្កើតអ្នកប្រើប្រាស់ថ្មីបានទេ, សូមត្រួតពិនិត្យម្តងទៀត!";
-        }
-        else{
-            $sms = "New user has been created successfully!";
-            $sms1 = "Fail to create new user. Please check your entry again!";
-        }
-        if($r->photo)
-        {
-            $file = $r->file('photo');
-            $file_name = $file->getClientOriginalName();
-            $destinationPath = 'profile/'; // usually in public folder
-            $file->move($destinationPath, $file_name);
-        }
+        $sms = "New user has been created successfully!";
+        $sms1 = "Fail to create new user. Please check your entry again!";
+
         $data = array(
-            'name' => $r->name,
+            'first_name' => $r->first_name,
+            'last_name' => $r->last_name,
+            'username' => $r->name,
             'email' => $r->email,
+            'phone' => $r->phone,
+            'gender' => $r->gender,
             'password' => bcrypt($r->password),
-            'photo' => $file_name,
-            'language' => $r->language,
             'role_id' => $r->role
         );
-        $i = DB::table('users')->insert($data);
+        $i = DB::table('users')->insertGetId($data);
+        if($r->hasFile('photo'))
+        {
+            $file = $r->file('photo');
+            $file_name = $i . '-' .$file->getClientOriginalName();
+            $destinationPath = 'profile/'; // usually in public folder
+            $file->move($destinationPath, $file_name);
+            DB::table("users")->where("id", $i)->update(["photo"=>$file_name]);
+        }
         if ($i)
         {
             $r->session()->flash('sms', $sms);
@@ -187,25 +160,14 @@ class UserController extends Controller
     // update user
     public function update(Request $r)
     {
-
-        $file_name = "";
-        $sms = "";
-        $sms1 = "";
-        $lang = Auth::user()->language;
-        if($lang=='kh')
-        {
-            $sms = "ពត៌មានអ្នកប្រើប្រាស់ ត្រូវបានផ្លាស់ប្តូរដោយជោគជ័យ។";
-            $sms1 = "មិនអាចធ្វើការផ្លាស់ពត៌មានបានទេ, អ្នកទំនងជាមិនបានផ្លាស់ប្តូរពត៌មានទេ។";
-        }
-        else{
-            $sms = "All changes have been saved successfully.";
-            $sms1 = "Fail to update user. Please check your entry again. It seems you don't make any change!";
-        }
-        $data = array();
+        $sms = "All changes have been saved successfully.";
         $data = array(
-            'name' => $r->name,
+            'first_name' => $r->first_name,
+            'last_name' => $r->last_name,
+            'username' => $r->name,
             'email' => $r->email,
-            'language' => $r->language,
+            'phone' => $r->phone,
+            'gender' => $r->gender,
             'role_id' => $r->role
         );
         if($r->photo)
@@ -217,15 +179,9 @@ class UserController extends Controller
             $data['photo'] = $file_name;
         }
         $i = DB::table('users')->where('id', $r->id)->update($data);
-        if ($i)
-        {
-            $r->session()->flash('sms', $sms);
-            return redirect('/user/edit/'.$r->id);
-        }
-        else{
-            $r->session()->flash('sms1', $sms1);
-            return redirect('/user/edit/'.$r->id);
-        }
+        $r->session()->flash('sms', $sms);
+        return redirect('/user/edit/'.$r->id);
+
     }
     // load reset password form
     public function reset_password()
@@ -270,17 +226,10 @@ class UserController extends Controller
         $lang = Auth::user()->language;
         $new_password = $r->new_password;
         $confirm_password = $r->confirm_password;
-        $sms ="";
-        $sms1 = "";
-        if ($lang=='kh')
-        {
-            $sms1 = "លេខសម្ងាត់ថ្មីមិនត្រឹមត្រូវទេ សូមពិនិត្យឡើងវិញ។";
-            $sms = "លេខសម្ងាត់ ត្រូវបានផ្លាស់ប្តូរដោយជោគជ័យ។";
-        }
-        else{
-            $sms = "The password has been changed successfully.";
-            $sms1 = "The password is not matched. Please check again!";
-        }
+
+        $sms = "The password has been changed successfully.";
+        $sms1 = "The password is not matched. Please check again!";
+
         if ($new_password!=$confirm_password)
         {
             $r->session()->flash('sms1', $sms1);
@@ -290,9 +239,9 @@ class UserController extends Controller
             $data = array(
                 'password' => bcrypt($new_password)
             );
-            DB::table('users')->where('id', $id)->update($data);
+            $i = DB::table('users')->where('id', $id)->update($data);
             $r->session()->flash('sms', $sms);
-            return redirect('/user/update-password/'.$r->id)->withInput();
+            return redirect('/user/update-password/'.$r->id);
         }
     }
     // load final page of change password success
@@ -300,36 +249,5 @@ class UserController extends Controller
     {
         return view('users.finish-page');
     }
-    // load branch for adding to each user
-    public function branch($id)
-    {
-        $data['user'] = DB::table('users')
-            ->join("roles", "users.role_id","=", "roles.id")
-            ->where('users.id', $id)
-            ->select("users.*", "roles.name as role_name")
-            ->first();
-        $data['branches'] = DB::table('branches')->get();
-        // get all branches for the current user
-        $data['user_branches'] = DB::table('user_branches')
-            ->join('users', "user_branches.user_id","=","users.id")
-            ->join('branches', "user_branches.branch_id", "=", "branches.id")
-            ->where("user_branches.user_id",$id)
-            ->select("user_branches.*", "branches.name")
-            ->get();
-        return view("users.branches", $data);
-    }
-    public function add_branch(Request $r)
-    {
-        $data = array(
-            'user_id' => $r->user_id,
-            'branch_id' => $r->branch_id
-        );
-        $i = DB::table('user_branches')->insertGetId($data);
-        return $i;
-    }
-    public function delete_branch($id)
-    {
-        $i = DB::table('user_branches')->where('id', $id)->delete();
-        return $i;
-    }
+
 }

@@ -32,19 +32,7 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{url('/home')}}">Dashboard</a>
                 </li>
-                <li class="nav-item active">
-                    <a class="nav-link" href="{{url('/loan')}}">Loan <span class="sr-only">(current)</span></a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{url('/pawn')}}">Pawn</a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link" href="{{url('/accounting')}}">Accounting</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{{url('/parameter')}}">Parameters</a>
-                </li>
+               
                 <li class="nav-item">
                     <a class="nav-link" href="{{url('/setting')}}">Settings</a>
                 </li>
@@ -59,7 +47,7 @@
                     </a>
                     <div class="dropdown-menu" aria-labelledby="nav1">
                         <a class="dropdown-item" href="#"><i class="fa fa-user text-primary"></i> &nbsp;Profile</a>
-                        <a href="#" class="dropdown-item"><i class="fa fa-key text-warning"></i> &nbsp;Reset Password</a>
+                        <a href="{{url('/user/reset-password')}}" class="dropdown-item"><i class="fa fa-key text-warning"></i> &nbsp;Reset Password</a>
                         <a href="{{ route('logout') }}" class="dropdown-item"
                            onclick="event.preventDefault();
                             document.getElementById('logout-form').submit();"><i class="fa fa-sign-out text-success"></i> &nbsp;Logout</a>

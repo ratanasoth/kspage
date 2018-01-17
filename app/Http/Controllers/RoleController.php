@@ -21,48 +21,25 @@ class RoleController extends Controller
     public function index()
     {
         $data['roles'] = DB::table("roles")->where("active",1)->orderBy("name")->paginate(12); 
-        if(Auth::user()->role_id>1)
-        {
-        $data['roles'] = DB::table("roles")
-            ->where("active",1)
-            ->where("company_id", Auth::user()->company_id)
-            ->orderBy("name")->paginate(12);         
-        }
         return view("roles.index", $data);
     }
     // create
     public function create()
     {
-        $data['companies'] = null;
-        if(Auth::user()->role_id==1)
-        {
-            $data['companies'] = DB::table("companies")->where("active",1)->orderBy("name")->get();
-        }
-        return view("roles.create", $data);
+        return view("roles.create");
     }
     // edit
     public function edit($id)
     {
-        $data['companies'] = null;
-        if(Auth::user()->role_id==1)
-        {
-            $data['companies'] = DB::table("companies")->where("active",1)->orderBy("name")->get();
-        }
         $data['role'] = DB::table("roles")->where("id", $id)->first();
         return view("roles.edit", $data);
     }
     // insert
     public function save(Request $r)
     {
-        $company_id = $r->company_id;
-        if(Auth::user()->role_id>1)
-        {
-            $company_id = Auth::user()->company_id;
-        }
         $data = array(
             "name" => $r->name,
-            "create_by" => Auth::user()->id,
-            "company_id" => $company_id
+            "create_by" => Auth::user()->id
         );
         $i = DB::table('roles')->insert($data);
         if($i)
@@ -78,14 +55,9 @@ class RoleController extends Controller
     // update
     public function update(Request $r)
     {
-        $company_id = $r->company_id;
-        if(Auth::user()->role_id>1)
-        {
-            $company_id = Auth::user()->company_id;
-        }
+       
         $data = array(
-            "name" => $r->name,
-            "company_id" => $company_id
+            "name" => $r->name
         );
         $i = DB::table('roles')->where("id", $r->id)->update($data);
         if($i)
